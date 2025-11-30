@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12星座本週泌尿系統運勢</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字體作為基礎，並確保中文字體顯示正常 */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #eef1f6;
+        }
+        .header-bg {
+            background-color: #1e3a8a; /* 深藍色 */
+        }
+        .section-title {
+            color: #1d4ed8;
+        }
+        .disclaimer-card {
+            border: 2px solid #f87171;
+            background-color: #fef2f2;
+        }
+        
+        /* ---------------------------------------------------- */
+        /* 輪盤專用樣式 - 模擬羅盤/星盤 (使用背景圖片) */
+        /* ---------------------------------------------------- */
+        #zodiac-wheel-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin: 0 auto;
+            border-radius: 50%;
+            /* 外層光暈/邊框 */
+            box-shadow: 0 0 15px rgba(30, 64, 175, 0.7), 0 0 0 8px #a5b4fc; 
+            overflow: hidden; /* 確保圖片在邊界內 */
+            touch-action: none; /* 禁用瀏覽器的預設觸控行為，使手動旋轉更流暢 */
+            cursor: grab; /* 拖曳游標 */
+        }
+        #zodiac-wheel-container:active {
+            cursor: grabbing;
+        }
+        
+        #zodiac-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            /* **** 使用新的圖片作為背景 **** */
+            background-image: url('https://i.postimg.cc/Twhgzgdc/1764491222047.png'); 
+            background-size: cover;
+            background-position: center;
+            /* 保持旋轉動畫 */
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); 
+        }
+        
+        /* 移除與舊版 CSS 繪製圖標相關的樣式，因為它們現在是圖片的一部分 */
+        .zodiac-slice, .zodiac-icon {
+            display: none;
+        }
+
+        /* 指針樣式 - 固定在頂部，指向輪盤 (已修正，確保在容器內顯示) */
+        #pointer {
+            position: absolute;
+            top: 0px; /* 貼齊容器頂部 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent; /* 增大尺寸 */
+            border-right: 12px solid transparent; /* 增大尺寸 */
+            border-top: 24px solid #ef4444; /* 讓它向下指，使其尖端在容器內 */
+            border-bottom: none; /* 移除舊的 border */
+            z-index: 10;
+            /* 添加白色陰影/濾鏡，使其在深色背景下更醒目 */
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 1));
+        }
+
+        /* 輪盤中心的裝飾點 (現在也是旋轉按鈕) */
+        #wheel-center-decoration {
+            width: 64px; /* 縮小尺寸 */
+            height: 64px; /* 縮小尺寸 */
+            font-size: 0.875rem; /* 縮小字體 */
+            background-color: #fcd34d; /* 金色中心 */
+            border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            /* 使其看起來可點擊 */
+            cursor: pointer; 
+            user-select: none;
+        }
+
+        /* 旋轉結果區塊 */
+        #zodiac-result-card {
+            min-height: 200px;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .show-result {
+            opacity: 1 !important;
+        }
+        
+        /* 手風琴箭頭旋轉 */
+        .arrow.rotate-180 {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-bg text-white p-6 shadow-xl sticky top-0 z-20">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- 縮小主標題字體：從 text-3xl 改為 text-2xl -->
+            <h1 class="text-2xl font-extrabold tracking-tight">
+                🔮 12星座本週泌尿系統運勢 ⚕️
+            </h1>
+            <!-- 副標題換行 -->
+            <p class="mt-2 text-lg opacity-80">
+                旋轉星盤，發掘您的專屬趣味泌尿系統<br class="md:hidden"> 運勢提示！
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 md:p-8">
+
+        <!-- 互動羅盤區塊 -->
+        <section class="mb-12 bg-white p-6 rounded-xl shadow-2xl text-center">
+            <h2 class="section-title text-2xl font-bold mb-6">
+                🧭 星座健康羅盤 🧭
+            </h2>
+
+            <!-- 輪盤主體 -->
+            <div id="zodiac-wheel-container">
+                <div id="pointer"></div>
+                <div id="zodiac-wheel">
+                    <!-- 輪盤圖片在這裡作為背景顯示 -->
+                </div>
+                <!-- 中心點裝飾 / Spin Trigger -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div id="wheel-center-decoration" class="flex items-center justify-center text-gray-900 font-extrabold text-sm shadow-xl border-4 border-white/50 cursor-pointer hover:scale-105 transition duration-150">
+                        GO!
+                    </div>
+                </div>
+            </div>
+
+            <!-- 星座結果顯示卡片 -->
+            <div id="zodiac-result-card" class="mt-8 p-6 bg-purple-50 rounded-xl border-t-4 border-indigo-500 shadow-inner">
+                <h3 id="display-name" class="text-2xl font-bold text-indigo-700 mb-1">等待您的命運星座...</h3>
+                <p id="display-date" class="text-sm text-gray-500 mb-3">點擊羅盤中心 GO! 或手動旋轉來開始</p>
+                <p id="display-fortune" class="text-lg text-gray-800 font-medium mb-3">歡迎！您將在此看到選定星座的詳細分析。</p>
+                <div class="p-3 bg-indigo-200/50 rounded-lg">
+                    <strong class="text-indigo-800">🔮 健康小提醒：</strong>
+                    <span id="display-tip" class="text-indigo-700">選擇一個星座來解鎖您的專屬提示。</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 泌尿系統健康區塊 (手風琴) -->
+        <section class="mb-12 bg-white p-6 rounded-xl shadow-2xl">
+            <h2 class="section-title text-2xl font-bold mb-4 border-b pb-2">
+                🩺 泌尿系統健康基本須知 (教育資訊)
+            </h2>
+            <p class="mb-6 text-gray-700">
+                泌尿系統對於人體排出代謝廢物至關重要。以下是一些基礎的健康建議與常見疾病預防。
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3 section-title">常見泌尿系統疾病簡介 (可展開)</h3>
+            
+            <div class="space-y-3" id="health-accordion">
+                <!-- 疾病 1: 尿路感染 -->
+                <div class="accordion-item rounded-lg overflow-hidden shadow-md">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 bg-blue-100 hover:bg-blue-200 transition duration-150 font-bold text-blue-800 focus:outline-none" data-target="content-uti">
+                        <span>1. 尿路感染 (UTI)</span>
+                        <span class="arrow text-xl transform transition duration-300">▼</span>
+                    </button>
+                    <div id="content-uti" class="accordion-content p-4 bg-white text-gray-700 hidden">
+                        <p class="text-sm">
+                            主要由細菌引起，常表現為頻尿、尿急、排尿時灼熱或疼痛。女性因生理結構較為常見，但男性也可能發生。
+                        </p>
+                        <p class="text-xs mt-2 italic text-blue-700">
+                            預防：保持會陰部清潔、多喝水沖洗、不穿過緊衣物、性行為後排尿。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 疾病 2: 腎結石 -->
+                <div class="accordion-item rounded-lg overflow-hidden shadow-md">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 bg-blue-100 hover:bg-blue-200 transition duration-150 font-bold text-blue-800 focus:outline-none" data-target="content-stones">
+                        <span>2. 腎結石</span>
+                        <span class="arrow text-xl transform transition duration-300">▼</span>
+                    </button>
+                    <div id="content-stones" class="accordion-content p-4 bg-white text-gray-700 hidden">
+                        <p class="text-sm">
+                            尿液中的礦物質過度飽和形成結晶。常見症狀包括劇烈的腰部或腹股溝疼痛（腎絞痛）。
+                        </p>
+                        <p class="text-xs mt-2 italic text-blue-700">
+                            預防：**足夠飲水是絕對關鍵**；避免高鹽、高蛋白飲食；限制草酸攝取（如巧克力、堅果、茶）。
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 疾病 3: 攝護腺肥大 (BPH) -->
+                <div class="accordion-item rounded-lg overflow-hidden shadow-md">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 bg-blue-100 hover:bg-blue-200 transition duration-150 font-bold text-blue-800 focus:outline-none" data-target="content-bph">
+                        <span>3. 攝護腺肥大 (BPH) - 限男性</span>
+                        <span class="arrow text-xl transform transition duration-300">▼</span>
+                    </button>
+                    <div id="content-bph" class="accordion-content p-4 bg-white text-gray-700 hidden">
+                        <p class="text-sm">
+                            中老年男性常見，攝護腺增生壓迫尿道，導致排尿困難、夜尿增多、小便無力。
+                        </p>
+                        <p class="text-xs mt-2 italic text-blue-700">
+                            預防：規律排尿、避免大量飲水（尤其睡前）、減少咖啡因和酒精攝取、保持運動。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mt-8 mb-3 text-red-700">🔴 重要醫療免責聲明 🔴</h3>
+            <div class="disclaimer-card p-4 rounded-lg">
+                <p class="font-bold text-red-800 mb-2">
+                    本網站上的健康資訊僅供一般性教育和參考之用，絕不能替代專業醫療建議、診斷或治療。
+                </p>
+                <p class="text-red-700 text-sm">
+                    如果您懷疑自己患有任何泌尿系統疾病，<strong class="text-red-900">請務必立即尋求合資格的醫療專業人員（如泌尿科醫生）進行診斷和治療。</strong>
+                    延遲就醫可能會導致病情惡化。
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 text-sm">
+        &copy; 2025 趣味與健康資訊站 | 版權所有
+    </footer>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. 星座數據結構 (Zodiac Data)
+        // ----------------------------------------------------
+        const zodiacData = [
+            { key: 'Aries', sign: '♈', name: '牡羊座', element: '火象', date: '3/21 - 4/19', fortune: '本週泌尿系統：精力旺盛可能使您忘記喝水，或因衝動行事而忽略衛生。請確保飲水充足，並保持個人衛生。', tip: '積極補充水分，定時排尿，避免飲水不足。' },
+            { key: 'Taurus', sign: '♉', name: '金牛座', element: '土象', date: '4/20 - 5/20', fortune: '本週泌尿系統：口腹之慾大增，可能攝取過多高鹽或高普林食物，增加結石風險。請多喝水，並控制飲食。', tip: '減少重口味食物攝取，維持消化系統穩定。' },
+            { key: 'Gemini', sign: '♊', name: '雙子座', element: '風象', date: '5/21 - 6/20', fortune: '本週泌尿系統：社交繁忙，頻繁外出。可能因環境不便或過於忙碌而憋尿。請留意身體信號，規律排尿。', tip: '保持規律排尿習慣，避免長時間憋尿。' },
+            { key: 'Cancer', sign: '♋', name: '巨蟹座', element: '水象', date: '6/21 - 7/22', fortune: '本週泌尿系統：情緒波動較大，易導致身體免疫力下降。注意下腹部保暖，並避免飲用過多冰飲。', tip: '情緒穩定是關鍵，避免因壓力影響身體機能。' },
+            { key: 'Leo', sign: '♌', name: '獅子座', element: '火象', date: '7/23 - 8/22', fortune: '本週泌尿系統：過度操勞可能導致身體發炎。請確保充足休息，若有排尿灼熱等症狀，應立即休息並就醫。', tip: '確保充足睡眠，避免身體過度負荷。' },
+            { key: 'Virgo', sign: '♍', name: '處女座', element: '土象', date: '8/23 - 9/22', fortune: '本週泌尿系統：過度清潔或不當衛生習慣可能導致私密處菌群失衡。建議溫和清潔，注重排泄系統暢通。', tip: '多攝取纖維，維持腸道和排泄系統暢通。' },
+            { key: 'Libra', sign: '♎', name: '天秤座', element: '風象', date: '9/23 - 10/22', fortune: '本週泌尿系統：為了保持優雅可能減少飲水或憋尿。平衡是關鍵！請確保水分攝取，以利腎臟排毒。', tip: '減少加工食品，維持身體水分和代謝平衡。' },
+            { key: 'Scorpio', sign: '♏', name: '天蠍座', element: '水象', date: '10/23 - 11/21', fortune: '本週泌尿系統：生殖和泌尿系統的宮位能量強大。應特別注意私密處健康，任何不適都應儘早處理。', tip: '注重個人衛生，不適時需尋求專業協助。' },
+            { key: 'Sagittarius', sign: '♐', name: '射手座', element: '火象', date: '11/22 - 12/21', fortune: '本週泌尿系統：旅遊或長途跋涉可能導致飲水習慣改變或憋尿。在外更要養成定時飲水、定時排尿的好習慣。', tip: '旅遊時注意飲水與食物衛生，預防感染。' },
+            { key: 'Capricorn', sign: '♑', name: '摩羯座', element: '土象', date: '12/22 - 1/19', fortune: '本週泌尿系統：工作狂模式啟動，久坐不動，下半身血液循環受阻。請定時起身，做深蹲或伸展運動。', tip: '定時起身活動，改善下半身血液循環。' },
+            { key: 'Aquarius', sign: '♒', name: '水瓶座', element: '風象', date: '1/20 - 2/18', fortune: '本週泌尿系統：作息不規律可能影響腎上腺。嘗試減少咖啡因攝取，多喝純水，幫助身體穩定內分泌。', tip: '避免長時間憋尿，多做伸展運動促進循環。' },
+            { key: 'Pisces', sign: '♓', name: '雙魚座', element: '水象', date: '2/19 - 3/20', fortune: '本週泌尿系統：容易受外界影響而感到疲憊，導致免疫力下降。規律作息，並多補充維生素C，增強抵抗力。', tip: '保持規律作息，充足休息是身體修復的良藥。' }
+        ];
+
+        // ----------------------------------------------------
+        // 2. 輪盤變量與函數
+        // ----------------------------------------------------
+        const wheel = document.getElementById('zodiac-wheel');
+        const wheelContainer = document.getElementById('zodiac-wheel-container');
+        const centerDecoration = document.getElementById('wheel-center-decoration'); 
+
+        const totalSigns = zodiacData.length;
+        const anglePerSign = 360 / totalSigns; // 30 度
+        let lastRotation = 0; // 記錄上一次的旋轉角度，用於起始點
+
+        // --- 手動旋轉相關變量 ---
+        let isDragging = false;
+        let centerX, centerY;
+        let startAngle; // 滑鼠/觸控點相對於中心點的角度
+        let startWheelRotation; // 拖曳開始時輪盤的 CSS 旋轉角度
+
+        /**
+         * 提取當前 CSS transform 中的旋轉角度 (degrees)。
+         */
+        function getCurrentRotationFromCSS() {
+            const transformStyle = window.getComputedStyle(wheel).getPropertyValue('transform');
+            if (transformStyle === 'none' || transformStyle === 'matrix(1, 0, 0, 1, 0, 0)') {
+                return 0;
+            }
+            // 使用 DOMMatrix 獲取矩陣值
+            const matrix = new DOMMatrix(transformStyle);
+            // atan2(sin(theta), cos(theta)) 轉換為角度
+            // 由於 CSS transform matrix 提供了角度，這裡直接計算
+            let angle = Math.round(Math.atan2(matrix.b, matrix.a) * (180 / Math.PI));
+            // 確保角度為 0-359 度的正值
+            return (angle % 360 + 360) % 360; 
+        }
+
+        /**
+         * 輔助函數：計算點 (x, y) 相對於輪盤中心點的角度 (0-360 deg)。
+         */
+        function getAngle(x, y) {
+            const dx = x - centerX;
+            const dy = y - centerY;
+            // atan2 返回 -180 到 180 度，轉為 0 到 360 度的**順時針**角度
+            // 注意：這裡 y 軸是向下為正，所以需要特別處理
+            return (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+        }
+
+        /**
+         * 根據當前旋轉角度計算並返回對應的星座數據。
+         */
+        function calculateWinningZodiac(rotationDegree) {
+            // 由於圖片上的牡羊座在 3 點鐘方向 (0度)，而我們的數組從 0 度開始 (頂部)
+            // 且圖片上的星座是順時針排列的，但旋轉是反時針的（負角度）。
+            // 這裡需要將 CSS 旋轉角度轉換為星盤圖片上的指向角度。
+
+            // 1. 確保 rotationDegree 是正值 (0-360)
+            const normalizedRotation = (rotationDegree % 360 + 360) % 360;
+
+            // 2. 羅盤指針 (頂部 12 點鐘位置) 應對應的星座位置
+            // 羅盤圖片中，牡羊座 (Aries, 數組索引 0) 在 3 點鐘位置 (90度)
+            // 我們需要找到**指針** (位於 270 度，即 -90 度) 指向的角度。
+            
+            // 3. 調整角度以匹配指針位置 (將指針視為 0 度基準)
+            // 羅盤是順時針排列：Aries(0) -> Taurus(1) -> ... Pisces(11)
+            // 羅盤圖片上，Aries 在 90度。
+            
+            // 指針指向的角度 = (360 - 旋轉角度 + 90) % 360
+            // 簡化計算：
+            // 指針位於 270 度 (或 -90 度)。
+            
+            // 假設：指針在 0 度時，應指向牡羊座 (index 0)
+            // 牡羊座在圖片上的角度是 90 度
+            // 修正角度 = (270 - normalizedRotation) % 360
+            
+            // 經過測試，最簡單的方法是：
+            // (1) 找到指標在輪盤上的位置 (360 - normalizedRotation)
+            let indicatorAngle = (360 - normalizedRotation + 360) % 360;
+
+            // (2) 由於牡羊座在 90 度位置，我們需要從 90 度開始計算索引
+            // 讓 Aries (Index 0) 對應 90度，Taurus (Index 1) 對應 120度...
+            // 360度 - 90度 = 270度
+            let adjustedAngle = (indicatorAngle - 90 + 360) % 360;
+
+
+            // (3) 計算索引 (30 度為一個星座)
+            // 0 度的索引為 0，30 度為 1...
+            let rawIndex = adjustedAngle / anglePerSign;
+
+            // (4) 四捨五入到最近的整數索引
+            const winningIndex = Math.round(rawIndex) % totalSigns;
+
+            // 確保返回的索引在 0-11 範圍內
+            return zodiacData[winningIndex];
+        }
+
+
+        // --- 拖曳事件處理 (Drag/Touch Handlers) ---
+
+        function startDrag(e) {
+            // 如果動畫正在運行，則禁用手動拖曳
+            if (centerDecoration.style.pointerEvents === 'none') return;
+            
+            // 禁用 CSS transition 以便即時旋轉
+            wheel.style.transition = 'none'; 
+            
+            isDragging = true;
+            
+            const rect = wheel.getBoundingClientRect();
+            // 計算輪盤中心的視圖座標
+            centerX = rect.left + rect.width / 2;
+            centerY = rect.top + rect.height / 2;
+            
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            
+            // 記錄當前輪盤的實際旋轉角度 (0-359)
+            startWheelRotation = getCurrentRotationFromCSS();
+            
+            // 記錄滑鼠/觸控點相對於中心的起始角度
+            startAngle = getAngle(clientX, clientY);
+
+            // 全局綁定移動和結束監聽器
+            window.addEventListener('mousemove', moveDrag);
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchmove', moveDrag, { passive: false });
+            window.addEventListener('touchend', endDrag);
+
+            // 隱藏結果卡片
+            document.getElementById('zodiac-result-card').classList.remove('show-result');
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault(); // 防止滾動等預設行為
+
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            const currentAngle = getAngle(clientX, clientY);
+            
+            // 計算起始點和當前點的角度差
+            let angleDifference = currentAngle - startAngle;
+
+            // 新的旋轉角度 = 輪盤起始角度 + 角度差
+            // 注意：手動旋轉的方向與 CSS 旋轉方向相反 (CSS rotate 順時針為正)
+            lastRotation = startWheelRotation - angleDifference; 
+            
+            // 應用新的旋轉
+            wheel.style.transform = `rotate(${lastRotation}deg)`;
+
+            // 實時更新結果卡片 (即時反應速度)
+            displayResultFromManualStop();
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // 重新啟用 CSS transition
+            wheel.style.transition = 'transform 0.3s ease-out'; // 增加一個小小的慣性平滑過渡
+
+            // 移除監聽器
+            window.removeEventListener('mousemove', moveDrag);
+            window.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('touchmove', moveDrag);
+            window.removeEventListener('touchend', endDrag);
+            
+            // 獲取最終停止角度 (在 0.3s 過渡後)
+            const finalRotation = getCurrentRotationFromCSS(); 
+            lastRotation = finalRotation;
+            
+            // 最後一次更新結果 (確保停止時的結果是準確的)
+            displayResultFromManualStop();
+        }
+
+        /**
+         * 處理手動旋轉停止時的結果顯示
+         */
+        function displayResultFromManualStop() {
+            // 獲取當前旋轉角度，用於計算指針指向的星座
+            const currentRotation = getCurrentRotationFromCSS();
+            const winningData = calculateWinningZodiac(currentRotation); 
+
+            // 即時更新結果
+            displayZodiacResult(winningData);
+
+            // 顯示結果卡片
+            document.getElementById('zodiac-result-card').classList.add('show-result');
+        }
+
+        // --- 自動旋轉事件處理 (GO! Button Handler) ---
+
+        /**
+         * 啟動輪盤旋轉動畫
+         */
+        function spinWheel() {
+            if (centerDecoration.style.pointerEvents === 'none') return;
+            
+            centerDecoration.style.pointerEvents = 'none'; // 禁用點擊和拖曳
+            centerDecoration.textContent = '轉動中...';
+            wheelContainer.style.cursor = 'wait'; // 改變鼠標樣式
+
+            // 重新啟用 CSS transition (用於動畫旋轉)
+            wheel.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)'; 
+
+            // 隨機選定一個停止的索引 (0-11)
+            const winningIndex = Math.floor(Math.random() * totalSigns); 
+            
+            // 調整到目標星座需要轉動的度數
+            // 我們的 calculateWinningZodiac 邏輯是對應順時針旋轉角度 (0~360)
+            const degreesToAlign = winningIndex * anglePerSign; 
+            
+            // 加上多圈旋轉 (至少 5 圈) 增加動畫效果。
+            // 總旋轉 = 基礎旋轉 + 目標角度
+            // 由於 CSS 旋轉順時針為正，我們要讓指針（位於頂部）指向星座。
+            // 指針指向牡羊座 (Index 0) 應對應 -90 度 (90度順時針到頂部 0度)
+            const baseRotation = getCurrentRotationFromCSS();
+            const targetRotation = (baseRotation - degreesToAlign) + (360 * 5); // 旋轉 5 圈以上
+            
+            lastRotation = targetRotation;
+
+            // 隱藏結果卡片
+            document.getElementById('zodiac-result-card').classList.remove('show-result');
+            
+            // 應用旋轉
+            wheel.style.transform = `rotate(${lastRotation}deg)`;
+
+            // 設置動畫結束事件
+            wheel.addEventListener('transitionend', handleSpinEnd, { once: true });
+        }
+
+        /**
+         * 旋轉結束時處理結果 (動畫結束)
+         */
+        function handleSpinEnd() {
+            centerDecoration.style.pointerEvents = 'auto'; // 啟用中心點點擊
+            centerDecoration.textContent = 'GO!';
+            wheelContainer.style.cursor = 'grab'; // 恢復鼠標樣式
+
+            // 獲取最終停止角度 (修復後使用 getCurrentRotationFromCSS)
+            lastRotation = getCurrentRotationFromCSS(); 
+            const winningData = calculateWinningZodiac(lastRotation);
+            
+            // 立即顯示結果 (移除 setTimeout)
+            displayZodiacResult(winningData);
+            document.getElementById('zodiac-result-card').classList.add('show-result');
+        }
+
+        /**
+         * 更新結果顯示卡片內容
+         */
+        function displayZodiacResult(data) {
+            document.getElementById('display-name').textContent = `${data.sign} ${data.name} (${data.element})`;
+            document.getElementById('display-date').textContent = `本週泌尿系統運勢`;
+            document.getElementById('display-fortune').textContent = data.fortune;
+            document.getElementById('display-tip').textContent = data.tip;
+        }
+        
+        // ----------------------------------------------------
+        // 3. 手風琴 (Accordion) 函數
+        // ----------------------------------------------------
+        function setupAccordions() {
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const contentId = header.getAttribute('data-target');
+                    const content = document.getElementById(contentId);
+                    const arrow = header.querySelector('.arrow');
+
+                    const isVisible = !content.classList.contains('hidden');
+
+                    // 隱藏所有內容，只展開當前點擊的項目
+                    document.querySelectorAll('.accordion-content').forEach(c => {
+                        if (c !== content) {
+                            c.classList.add('hidden');
+                             document.querySelector(`[data-target="${c.id}"] .arrow`).classList.remove('rotate-180');
+                        }
+                    });
+
+                    // 展開/收合當前內容
+                    if (!isVisible) {
+                        content.classList.remove('hidden');
+                        arrow.classList.add('rotate-180');
+                    } else {
+                         arrow.classList.remove('rotate-180');
+                         content.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        // ----------------------------------------------------
+        // 4. 初始化
+        // ----------------------------------------------------
+        window.onload = function () {
+            // 綁定 GO! 按鈕事件 (自動旋轉)
+            centerDecoration.addEventListener('click', spinWheel);
+
+            // 綁定輪盤拖曳事件 (手動旋轉)
+            wheelContainer.addEventListener('mousedown', startDrag);
+            // { passive: false } 確保我們可以調用 preventDefault() 來禁用瀏覽器預設的滾動行為
+            wheelContainer.addEventListener('touchstart', startDrag, { passive: false }); 
+
+            // 綁定手風琴事件
+            setupAccordions();
+
+             // 預設將卡片內容設定為初始狀態
+             document.getElementById('display-name').textContent = `等待您的命運星座...`;
+             document.getElementById('display-date').textContent = `點擊羅盤中心 GO! 或手動旋轉來開始`;
+             document.getElementById('display-fortune').textContent = `歡迎！您將在此看到選定星座的詳細分析。`;
+             document.getElementById('display-tip').textContent = `選擇一個星座來解鎖您的專屬提示。`;
+        };
+
+    </script>
+</body>
+</html>
+
